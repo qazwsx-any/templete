@@ -34,7 +34,6 @@
     }
 </style>
 
-<!-- 나눔스퀘어 Light 웹폰트 -->
 <link href="https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@1.0/nanumsquare.css" rel="stylesheet">
 
 </head>
@@ -49,6 +48,33 @@
 <canvas id="canvas" width="1080" height="720"></canvas>
 
 <script>
+function wrapTextByWord(ctx, text, maxCharsPerLine) {
+    const words = text.split(" ");
+    let line = "";
+    let lines = [];
+
+    for (let i = 0; i < words.length; i++) {
+        let testLine = (line + words[i]).trim();
+
+        if (testLine.length > maxCharsPerLine) {
+            // 줄바꿈 발생
+            if (line.length === 0) {
+                // 단어 하나가 13자를 넘는 경우 (예외 처리)
+                lines.push(words[i]);
+            } else {
+                lines.push(line.trim());
+                line = words[i] + " ";
+            }
+        } else {
+            line = testLine + " ";
+        }
+    }
+
+    if (line.length > 0) lines.push(line.trim());
+
+    return lines;
+}
+
 function makeImage() {
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
@@ -57,24 +83,31 @@ function makeImage() {
     ctx.fillStyle = "#000000";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 텍스트 가져오기
-    const text = document.getElementById("textInput").value;
+    const inputText = document.getElementById("textInput").value;
 
-    // 텍스트 스타일 (50pt ≈ 67px)
+    // 텍스트 스타일
     ctx.font = "300 67px 'NanumSquare'";
-    ctx.fillStyle = "#ffe104";   // ← 형님이 요청한 색상 반영
+    ctx.fillStyle = "#ffe104";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
 
-    // 중앙에 텍스트 출력
-    ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+    // 줄바꿈 처리 (단어 기준 / 13자 제한)
+    const lines = wrapTextByWord(ctx, inputText, 13);
+
+    // 여러 줄 중앙 정렬
+    const lineHeight = 80;
+    const totalHeight = lineHeight * (lines.length - 1);
+    const startY = canvas.height / 2 - totalHeight / 2;
+
+    lines.forEach((line, i) => {
+        ctx.fillText(line, canvas.width / 2, startY + i * lineHeight);
+    });
 
     // 로고 삽입
     const logo = new Image();
     logo.src = "t1logo.png";
 
     logo.onload = function () {
-        // 회색 변환용 임시 캔버스
         const tempCanvas = document.createElement("canvas");
         tempCanvas.width = logo.width;
         tempCanvas.height = logo.height;
@@ -84,7 +117,6 @@ function makeImage() {
         let imgData = tctx.getImageData(0, 0, logo.width, logo.height);
         let data = imgData.data;
 
-        // grayscale 변환
         for (let i = 0; i < data.length; i += 4) {
             let gray = (data[i] + data[i + 1] + data[i + 2]) / 3;
             data[i] = gray;
@@ -94,11 +126,10 @@ function makeImage() {
 
         tctx.putImageData(imgData, 0, 0);
 
-        // 로고 크기 지정
         const logoWidth = 180;
         const logoHeight = (logo.height / logo.width) * logoWidth;
 
-        // ★ 로고를 더 위쪽으로 붙임 (기존 40 → 10)
+        // 로고 더 위쪽(10px) 유지
         ctx.drawImage(tempCanvas, canvas.width - logoWidth - 40, 10, logoWidth, logoHeight);
     };
 }
