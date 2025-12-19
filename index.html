@@ -60,7 +60,7 @@ function makeImage() {
     // 텍스트 가져오기
     const text = document.getElementById("textInput").value;
 
-    // 텍스트 스타일 (50pt = 약 67px, 하지만 실제 PT 단위 대신 px 사용이 웹표준)
+    // 텍스트 스타일 (50pt ≈ 67px)
     ctx.font = "300 67px 'NanumSquare'";
     ctx.fillStyle = "yellow";
     ctx.textAlign = "center";
@@ -94,17 +94,14 @@ function makeImage() {
 
         tctx.putImageData(imgData, 0, 0);
 
-        // 최종 로고 출력 (크기는 180px로 줄임)
+        // 최종 로고 출력
         const logoWidth = 180;
         const logoHeight = (logo.height / logo.width) * logoWidth;
 
         ctx.drawImage(tempCanvas, canvas.width - logoWidth - 40, 40, logoWidth, logoHeight);
 
-        // 다운로드
-        const link = document.createElement("a");
-        link.download = "result.png";
-        link.href = canvas.toDataURL();
-        link.click();
+        // ⛔ 자동 다운로드 제거됨
+        // 사용자가 직접 캔버스 이미지를 저장하면 됨.
     };
 }
 </script>
