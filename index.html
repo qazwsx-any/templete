@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<title>문구 이미지 생성기</title>
+
+<style>
+    body {
+        background: #000;
+        color: #fff;
+        text-align: center;
+        padding: 20px;
+        font-family: 'NanumSquare', sans-serif;
+    }
+    input {
+        width: 80%;
+        max-width: 400px;
+        padding: 10px;
+        font-size: 18px;
+        margin-top: 20px;
+        border-radius: 6px;
+    }
+    button {
+        padding: 10px 20px;
+        margin-top: 15px;
+        font-size: 18px;
+        cursor: pointer;
+    }
+    canvas {
+        margin-top: 25px;
+        width: 90%;
+        max-width: 600px;
+        border: 1px solid #333;
+    }
+</style>
+
+<!-- 나눔스퀘어 Light 웹폰트 -->
+<link href="https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@1.0/nanumsquare.css" rel="stylesheet">
+
+</head>
+<body>
+
+<h2 style="font-weight:300;">문구 이미지 생성</h2>
+
+<input id="textInput" type="text" placeholder="텍스트를 입력하세요">
+<button onclick="makeImage()">이미지 생성</button>
+
+<br>
+<canvas id="canvas" width="1080" height="1080"></canvas>
+
+<script>
+function makeImage() {
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // 배경을 검정색으로 채움
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 1) 사용자 입력 텍스트
+    const text = document.getElementById("textInput").value;
+
+    // 2) 글자 스타일
+    ctx.font = "300 18px 'NanumSquare'";
+    ctx.fillStyle = "yellow";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    // 3) 정중앙에 텍스트 출력
+    ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
+    // 4) T1 로고 불러오기
+    const logo = new Image();
+    logo.src = "t1logo.png";
+
+    logo.onload = function () {
+        // 로고를 회색으로 변환하기 위해 임시 캔버스 사용
+        const tempCanvas = document.createElement("canvas");
+        tempCanvas.width = logo.width;
+        tempCanvas.height = logo.height;
+        const tctx = tempCanvas.getContext("2d");
+
+        tctx.drawImage(logo, 0, 0);
+        let imgData = tctx.getImageData(0, 0, logo.width, logo.height);
+        let data = imgData.data;
+
+        // 빨간색 로고 → 회색 변환
+        for (let i = 0; i < data.length; i += 4) {
+            let r = data[i];
+            let g = data[i + 1];
+            let b = data[i + 2];
+
+            // grayscale 변환 (평균)
+            let gray = (r + g + b) / 3;
+
+            data[i] = gray;
+            data[i + 1] = gray;
+            data[i + 2] = gray;
+        }
+
+        tctx.putImageData(imgData, 0, 0);
+
+        // 5) 우측 상단에 로고 삽입 (크기 조절)
+        const logoWidth = 200;
+        const logoHeight = (logo.height / logo.width) * logoWidth;
+
+        ctx.drawImage(tempCanvas, canvas.width - logoWidth - 40, 40, logoWidth, logoHeight);
+
+        // 다운로드 자동 생성
+        const link = document.createElement("a");
+        link.download = "result.png";
+        link.href = canvas.toDataURL();
+        link.click();
+    };
+}
+</script>
+
+</body>
+</html>
