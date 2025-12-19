@@ -46,35 +46,35 @@
 <button onclick="makeImage()">이미지 생성</button>
 
 <br>
-<canvas id="canvas" width="1080" height="1080"></canvas>
+<canvas id="canvas" width="1080" height="720"></canvas>
 
 <script>
 function makeImage() {
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
 
-    // 배경을 검정색으로 채움
+    // 배경 검정
     ctx.fillStyle = "#000000";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 1) 사용자 입력 텍스트
+    // 텍스트 가져오기
     const text = document.getElementById("textInput").value;
 
-    // 2) 글자 스타일
-    ctx.font = "300 18px 'NanumSquare'";
+    // 텍스트 스타일 (50pt = 약 67px, 하지만 실제 PT 단위 대신 px 사용이 웹표준)
+    ctx.font = "300 67px 'NanumSquare'";
     ctx.fillStyle = "yellow";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
 
-    // 3) 정중앙에 텍스트 출력
+    // 중앙에 텍스트 출력
     ctx.fillText(text, canvas.width / 2, canvas.height / 2);
 
-    // 4) T1 로고 불러오기
+    // 로고 삽입
     const logo = new Image();
     logo.src = "t1logo.png";
 
     logo.onload = function () {
-        // 로고를 회색으로 변환하기 위해 임시 캔버스 사용
+        // 회색 변환용 임시 캔버스
         const tempCanvas = document.createElement("canvas");
         tempCanvas.width = logo.width;
         tempCanvas.height = logo.height;
@@ -84,15 +84,9 @@ function makeImage() {
         let imgData = tctx.getImageData(0, 0, logo.width, logo.height);
         let data = imgData.data;
 
-        // 빨간색 로고 → 회색 변환
+        // grayscale 변환
         for (let i = 0; i < data.length; i += 4) {
-            let r = data[i];
-            let g = data[i + 1];
-            let b = data[i + 2];
-
-            // grayscale 변환 (평균)
-            let gray = (r + g + b) / 3;
-
+            let gray = (data[i] + data[i + 1] + data[i + 2]) / 3;
             data[i] = gray;
             data[i + 1] = gray;
             data[i + 2] = gray;
@@ -100,13 +94,13 @@ function makeImage() {
 
         tctx.putImageData(imgData, 0, 0);
 
-        // 5) 우측 상단에 로고 삽입 (크기 조절)
-        const logoWidth = 200;
+        // 최종 로고 출력 (크기는 180px로 줄임)
+        const logoWidth = 180;
         const logoHeight = (logo.height / logo.width) * logoWidth;
 
         ctx.drawImage(tempCanvas, canvas.width - logoWidth - 40, 40, logoWidth, logoHeight);
 
-        // 다운로드 자동 생성
+        // 다운로드
         const link = document.createElement("a");
         link.download = "result.png";
         link.href = canvas.toDataURL();
